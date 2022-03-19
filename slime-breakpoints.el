@@ -48,6 +48,12 @@
 	      (local-set-key (kbd "C-c C-b k") 'slime-remove-breakpoint)
 	      (local-set-key (kbd "C-c C-b K") 'slime-remove-all-breakpoints))))
 
+(defun slime-breakpoints--extend-slime-menu ()
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+		      ["Break on entry..." slime-break-on-entry])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+		      ["Remove all breakpoints" slime-remove-all-breakpoints]))
+
 (define-slime-contrib slime-breakpoints
   "Breakpoints management extension for SLIME."
   (:authors "Mariano Montone")
