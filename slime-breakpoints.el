@@ -36,6 +36,15 @@
   (slime-eval `(breakpoints:break-on-entry (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
   (message "Breakpoint installed on %s entry" function-name))
 
+(defun slime-toggle-breakpoint (function-name)
+  (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
+  (when (not function-name)
+    (error "No function name given"))
+  (let ((enabled (slime-eval `(breakpoints:toggle-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))))
+    (if enabled
+        (message "Breakpoint installed on %s entry" function-name)
+      (message "Breakpoint removed from %s" function-name))))
+
 (defun slime-remove-all-breakpoints ()
   (interactive)
   (slime-eval '(breakpoints:remove-all-breakpoints))
@@ -44,15 +53,17 @@
 (defun slime-breakpoints-setup-key-bindings ()
   (add-hook 'lisp-mode-hook
             (lambda ()
-	      (local-set-key (kbd "C-c b") 'slime-break-on-entry)
-	      (local-set-key (kbd "C-c C-b k") 'slime-remove-breakpoint)
-	      (local-set-key (kbd "C-c C-b K") 'slime-remove-all-breakpoints))))
+              (local-set-key (kbd "C-c b") 'slime-break-on-entry)
+              (local-set-key (kbd "C-c C-b k") 'slime-remove-breakpoint)
+              (local-set-key (kbd "C-c C-b K") 'slime-remove-all-breakpoints))))
 
 (defun slime-breakpoints--extend-slime-menu ()
   (easy-menu-add-item 'menubar-slime '("Debugging")
-		      ["Break on entry..." slime-break-on-entry])
+                      ["Break on entry..." slime-break-on-entry])
   (easy-menu-add-item 'menubar-slime '("Debugging")
-		      ["Remove all breakpoints" slime-remove-all-breakpoints]))
+                      ["Remove all breakpoints" slime-remove-all-breakpoints])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Toggle breakpoint at point" slime-toggle-breakpoint]))
 
 (define-slime-contrib slime-breakpoints
   "Breakpoints management extension for SLIME."
