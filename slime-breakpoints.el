@@ -69,11 +69,11 @@
   "Breakpoints management extension for SLIME."
   (:authors "Mariano Montone")
   (:license "GPL")
+  (:swank-dependencies slime-breakpoints)
   (:on-load
    ;; setup key bindings
    (slime-breakpoints-setup-key-bindings)
-   ;; add submenu to SLIME menu
-   ;;(slime-help--add-menu-to-slime)
+   ;; add menu items
    (slime-breakpoints--extend-slime-menu)))
 
 
