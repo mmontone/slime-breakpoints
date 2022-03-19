@@ -78,4 +78,4 @@
   (loop for k being each hash-key of *breakpoints*
         do (reinstall-breakpoint k)))
 
-(provide 'breakpoints)
+(provide :breakpoints)
