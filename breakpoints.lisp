@@ -3,54 +3,59 @@
   (:export
    #:break-on-entry
    #:remove-breakpoint
-   #:remove-all-breakpoints))
+   #:remove-all-breakpoints
+   #:reinstall-breakpoint
+   #:reinstall-all-breakpoints
+   #:*breakpoints*))
 
 (in-package :breakpoints)
 
-(defvar *installed-breakpoints* (make-hash-table))
+(defvar *breakpoints* (make-hash-table))
 
 (defun break-on-entry (function-name)
   (check-type function-name symbol)
-  (let ((breakpoint (gethash function-name *installed-breakpoints*)))
+  (let ((breakpoint (gethash function-name *breakpoints*)))
     (when breakpoint
-      (destructuring-bind (original with-breakpoint) breakpoint
-	(when (eq (symbol-function function-name)
-		  with-breakpoint)
-	  (return-from break-on-entry nil)))))
+      (let ((break (getf breakpoint :break)))
+        (when (eq (symbol-function function-name) break)
+          (return-from break-on-entry nil)))))
   (let* ((original-function (symbol-function function-name))
-	 (function-with-breakpoint
-	   (lambda (&rest args)
-	   (break)
-	   (apply original-function args))))
-    (setf (symbol-function function-name)
-	  function-with-breakpoint)
-    (setf (gethash function-name *installed-breakpoints*)
-	  (list original-function function-with-breakpoint)))
+         (function-with-break
+           (lambda (&rest args)
+           (break)
+           (apply original-function args))))
+    (setf (symbol-function function-name) function-with-break)
+    (setf (gethash function-name *breakpoints*)
+          (list :type :break-on-entry
+                :replaced original-function
+                :break function-with-break)))
   t)
 
 (defun remove-breakpoint (function-name)
-  (let ((breakpoint (gethash function-name *installed-breakpoints*)))
+  (let ((breakpoint (gethash function-name *breakpoints*)))
     (when breakpoint
-      (destructuring-bind (original with-breakpoint) breakpoint
-	(when (eq (symbol-function function-name)
-		  with-breakpoint)
-	  (setf (symbol-function function-name) original)))
-      (remhash function-name *installed-breakpoints*)
+      (destructuring-bind (&key type replaced break) breakpoint
+        (declare (ignore type))
+        (when (eq (symbol-function function-name) break)
+          (setf (symbol-function function-name) replaced)))
+      (remhash function-name *breakpoints*)
       t)))
 
 (defun remove-all-breakpoints ()
-  (loop for k being each hash-key of *installed-breakpoints*
-	do (remove-breakpoint k))
-  (setf *installed-breakpoints* (make-hash-table))
+  (loop for k being each hash-key of *breakpoints*
+        do (remove-breakpoint k))
+  (setf *breakpoints* (make-hash-table))
   t)
 
-(defun foo (x)
-  (print x))
+(defun reinstall-breakpoint (function-name)
+  (let ((breakpoint (gethash function-name *breakpoints*)))
+    (when breakpoint
+      (let ((break (getf breakpoint :break)))
+        (when (not (eq (symbol-function function-name) break))
+          (break-on-entry function-name))))))
 
-(foo 22)
+(defun reinstall-all-breakpoints ()
+  (loop for k being each hash-key of *breakpoints*
+        do (reinstall-breakpoint k)))
 
-(break-on-entry 'foo)
-
-(foo 22)
-
-(remove-all-breakpoints)
+(provide 'breakpoints)
