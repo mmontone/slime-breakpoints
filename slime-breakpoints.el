@@ -45,6 +45,13 @@
         (message "Breakpoint installed on %s entry" function-name)
       (message "Breakpoint removed from %s" function-name))))
 
+(defun slime-remove-breakpoint (function-name)
+  (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
+  (when (not function-name)
+    (error "No function name given"))
+  (slime-eval `(breakpoints:remove-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
+  (message "Breakpoint removed"))
+
 (defun slime-remove-all-breakpoints ()
   (interactive)
   (slime-eval '(breakpoints:remove-all-breakpoints))
@@ -66,42 +73,42 @@
     (insert "There are no breakpoints installed.")
     (cl-return-from slime-breakpoints--update-breakpoints-buffer-contents))
   (dolist (breakpoint slime-breakpoints--breakpoints)
-      (insert-button
-       (cl-getf breakpoint :name)
-       'action (lambda (button)
-		 (slime-edit-definition (cl-getf breakpoint :name)))
-       'follow-link t)
-      (indent-to-column 60)
-      (widget-create
-       'toggle
-       :on "[Enabled]"
-       :off "[Disabled]"
-       :notify (lambda (wid &rest ignore)
-                 (if (widget-value wid)
-		     ;;(slime-break-on-entry (cl-getf breakpoint :name))
-		     (message "enable")
-		   ;;(slime-remove-breakpoint (cl-getf breakpoint :name))
-		   (message "disable")))
-       (cl-getf breakpoint :enabled)))
-    (newline 2)
     (insert-button
-     "Remove all"
-     'face 'slime-breakpoints-button
+     (cl-getf breakpoint :name)
      'action (lambda (button)
-	       (slime-remove-all-breakpoints)
-	       (setf slime-breakpoints--breakpoints nil)
-	       (slime-breakpoints--refresh-breakpoints-buffer))
-     'follow-link t))
+               (slime-edit-definition (cl-getf breakpoint :name)))
+     'follow-link t)
+    (indent-to-column 60)
+    (widget-create
+     'toggle
+     :on "[Enabled]"
+     :off "[Disabled]"
+     :notify (lambda (wid &rest ignore)
+               (if (widget-value wid)
+                   ;;(slime-break-on-entry (cl-getf breakpoint :name))
+                   (message "enable")
+                 ;;(slime-remove-breakpoint (cl-getf breakpoint :name))
+                 (message "disable")))
+     (cl-getf breakpoint :enabled)))
+  (newline 2)
+  (insert-button
+   "Remove all"
+   'face 'slime-breakpoints-button
+   'action (lambda (button)
+             (slime-remove-all-breakpoints)
+             (setf slime-breakpoints--breakpoints nil)
+             (slime-breakpoints--refresh-breakpoints-buffer))
+   'follow-link t))
 
 (defun slime-breakpoints--refresh-breakpoints-buffer ()
   (let ((buffer (get-buffer "*slime-breakpoints*")))
     (when buffer
       (with-current-buffer buffer
-	(kill-all-local-variables)
-	(let ((inhibit-read-only t))
-	  (erase-buffer))
-	(remove-overlays)
-	(slime-breakpoints--update-breakpoints-buffer-contents)))))
+        (kill-all-local-variables)
+        (let ((inhibit-read-only t))
+          (erase-buffer))
+        (remove-overlays)
+        (slime-breakpoints--update-breakpoints-buffer-contents)))))
 
 (defun slime-list-breakpoints ()
   (interactive)
