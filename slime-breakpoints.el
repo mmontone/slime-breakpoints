@@ -118,6 +118,7 @@
       (setq buffer-read-only t)
       (use-local-map widget-keymap)
       (widget-setup)
+      (local-set-key (kbd "q") 'kill-buffer)
       (display-buffer buffer))))
 
 
@@ -126,15 +127,19 @@
             (lambda ()
               (local-set-key (kbd "C-c b") 'slime-break-on-entry)
               (local-set-key (kbd "C-c C-b k") 'slime-remove-breakpoint)
-              (local-set-key (kbd "C-c C-b K") 'slime-remove-all-breakpoints))))
+              (local-set-key (kbd "C-c C-b K") 'slime-remove-all-breakpoints)
+	      (local-set-key (kbd "C-c C-b ") 'slime-list-breakpoints))))
 
 (defun slime-breakpoints--extend-slime-menu ()
+  (easy-menu-add-item 'menubar-slime '("Debugging") "---")
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Break on entry..." slime-break-on-entry])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Remove all breakpoints" slime-remove-all-breakpoints])
   (easy-menu-add-item 'menubar-slime '("Debugging")
-                      ["Toggle breakpoint at point" slime-toggle-breakpoint]))
+                      ["Toggle breakpoint at point" slime-toggle-breakpoint])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["List breakpoints" slime-list-breakpoints]))
 
 (define-slime-contrib slime-breakpoints
   "Breakpoints management extension for SLIME."
