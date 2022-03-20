@@ -50,6 +50,70 @@
   (slime-eval '(breakpoints:remove-all-breakpoints))
   (message "All breakpoints removed."))
 
+(defface slime-breakpoints-button
+  '((t (:box (:line-width 2 :color "dark grey") :background "light grey" :foreground "black")))
+  "Face for slime-breakpoints buttons"
+  :group 'slime-breakpoints-faces)
+
+(defvar slime-breakpoints--breakpoints
+  (list
+   (list :name "FOO" :type :break-on-entry :enabled t)
+   (list :name "BAR" :type :break-on-entry :enabled nil)
+   (list :name "BAZ" :type :break-on-entry :enabled t)))
+
+(cl-defun slime-breakpoints--update-breakpoints-buffer-contents ()
+  (when (zerop (length slime-breakpoints--breakpoints))
+    (insert "There are no breakpoints installed.")
+    (cl-return-from slime-breakpoints--update-breakpoints-buffer-contents))
+  (dolist (breakpoint slime-breakpoints--breakpoints)
+      (insert-button
+       (cl-getf breakpoint :name)
+       'action (lambda (button)
+		 (slime-edit-definition (cl-getf breakpoint :name)))
+       'follow-link t)
+      (indent-to-column 60)
+      (widget-create
+       'toggle
+       :on "[Enabled]"
+       :off "[Disabled]"
+       :notify (lambda (wid &rest ignore)
+                 (if (widget-value wid)
+		     ;;(slime-break-on-entry (cl-getf breakpoint :name))
+		     (message "enable")
+		   ;;(slime-remove-breakpoint (cl-getf breakpoint :name))
+		   (message "disable")))
+       (cl-getf breakpoint :enabled)))
+    (newline 2)
+    (insert-button
+     "Remove all"
+     'face 'slime-breakpoints-button
+     'action (lambda (button)
+	       (slime-remove-all-breakpoints)
+	       (setf slime-breakpoints--breakpoints nil)
+	       (slime-breakpoints--refresh-breakpoints-buffer))
+     'follow-link t))
+
+(defun slime-breakpoints--refresh-breakpoints-buffer ()
+  (let ((buffer (get-buffer "*slime-breakpoints*")))
+    (when buffer
+      (with-current-buffer buffer
+	(kill-all-local-variables)
+	(let ((inhibit-read-only t))
+	  (erase-buffer))
+	(remove-overlays)
+	(slime-breakpoints--update-breakpoints-buffer-contents)))))
+
+(defun slime-list-breakpoints ()
+  (interactive)
+  (let ((buffer (get-buffer-create "*slime-breakpoints*")))
+    (with-current-buffer buffer
+      (slime-breakpoints--update-breakpoints-buffer-contents)
+      (setq buffer-read-only t)
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (display-buffer buffer))))
+
+
 (defun slime-breakpoints-setup-key-bindings ()
   (add-hook 'lisp-mode-hook
             (lambda ()
