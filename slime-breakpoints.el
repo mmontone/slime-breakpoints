@@ -38,6 +38,7 @@
   (slime-breakpoints--refresh-breakpoints-buffer))
 
 (defun slime-toggle-breakpoint (function-name)
+  "Toggle breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
   (when (not function-name)
     (error "No function name given"))
@@ -48,6 +49,7 @@
   (slime-breakpoints--refresh-breakpoints-buffer))
 
 (defun slime-remove-breakpoint (function-name)
+  "Remove breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
   (when (not function-name)
     (error "No function name given"))
@@ -56,6 +58,7 @@
   (slime-breakpoints--refresh-breakpoints-buffer))
 
 (defun slime-remove-all-breakpoints ()
+  "Remove all breakpoints."
   (interactive)
   (slime-eval '(breakpoints:remove-all-breakpoints))
   (message "All breakpoints removed.")
@@ -110,6 +113,7 @@
           (slime-breakpoints--update-breakpoints-buffer-contents))))))
 
 (defun slime-list-breakpoints ()
+  "Open a buffer that list the current installed breakpoints."
   (interactive)
   (let ((buffer (get-buffer-create "*slime-breakpoints*")))
     (with-current-buffer buffer
