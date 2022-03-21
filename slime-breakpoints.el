@@ -65,6 +65,23 @@
   (message "All breakpoints removed.")
   (slime-breakpoints--refresh-breakpoints-buffer))
 
+(defun slime-disable-breakpoint (function-name)
+  "Disable breakpoint on FUNCTION-NAME.
+The breakpoint remains in the list of breakpoints."
+  (interactive (list (slime-read-symbol-name "Disable breakpoint: ")))
+  (when (not function-name)
+    (error "No function name given"))
+  (slime-eval `(breakpoints:disable-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
+  (message "Breakpoint disabled")
+  (slime-breakpoints--refresh-breakpoints-buffer))
+
+(defun slime-disable-all-breakpoints ()
+  "Disable all breakpoints."
+  (interactive)
+  (slime-eval '(breakpoints:disable-all-breakpoints))
+  (message "All breakpoints disabled.")
+  (slime-breakpoints--refresh-breakpoints-buffer))
+
 (defun slime-reinstall-breakpoint (function-name)
   "Reinstall breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Reinstall breakpoint: ")))
@@ -108,7 +125,7 @@
        :notify (lambda (wid &rest ignore)
 		 (if (widget-value wid)
                      (slime-break-on-entry (cl-getf breakpoint :name))
-                   (slime-remove-breakpoint (cl-getf breakpoint :name))))
+                   (slime-disable-breakpoint (cl-getf breakpoint :name))))
        (cl-getf breakpoint :enabled)))
     (newline 2)
     (insert-button
@@ -163,9 +180,15 @@
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Break on entry..." slime-break-on-entry])
   (easy-menu-add-item 'menubar-slime '("Debugging")
-                      ["Remove all breakpoints" slime-remove-all-breakpoints])
-  (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Toggle breakpoint at point" slime-toggle-breakpoint])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Remove breakpoint at point" slime-remove-breakpoint])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Disable breakpoint at point" slime-disable-breakpoint])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Disable all breakpoints" slime-disable-all-breakpoints])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Remove all breakpoints" slime-remove-all-breakpoints])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["List breakpoints" slime-list-breakpoints]))
 

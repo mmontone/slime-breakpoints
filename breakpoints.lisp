@@ -7,6 +7,8 @@
    #:remove-all-breakpoints
    #:reinstall-breakpoint
    #:reinstall-all-breakpoints
+   #:disable-breakpoint
+   #:disable-all-breakpoints
    #:breakpoint-installed-p
    #:*breakpoints*))
 
@@ -55,6 +57,21 @@
     (remhash function-name *breakpoints*)
     t))
 
+(defun disable-breakpoint (function-name)
+  "Disable breakpoint on FUNCTION-NAME.
+The breakpoint remains in the list of breakpoints."
+  (check-type function-name symbol)
+
+  (when (not (breakpoint-installed-p function-name))
+    (return-from disable-breakpoint nil))
+
+  (let ((breakpoint (gethash function-name *breakpoints*)))
+    (destructuring-bind (&key type replaced break) breakpoint
+      (declare (ignore type))
+      (when (eq (symbol-function function-name) break)
+        (setf (symbol-function function-name) replaced)))
+    t))
+
 (defun toggle-breakpoint (function-name)
   "Toggle breakpoint on FUNCTION-NAME."
   (check-type function-name symbol)
@@ -71,6 +88,12 @@
   (loop for k being each hash-key of *breakpoints*
         do (remove-breakpoint k))
   (setf *breakpoints* (make-hash-table))
+  t)
+
+(defun disable-all-breakpoints ()
+  "Disable all installed breakpoints."
+  (loop for k being each hash-key of *breakpoints*
+        do (disable-breakpoint k))
   t)
 
 (defun reinstall-breakpoint (function-name)
