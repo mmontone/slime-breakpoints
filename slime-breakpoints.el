@@ -165,15 +165,21 @@ The breakpoint remains in the list of breakpoints."
       (local-set-key (kbd "q") 'kill-buffer)
       (display-buffer buffer))))
 
+(defvar slime-breakpoints-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") #'slime-break-on-entry)
+    (define-key map (kbd "SPC") #'slime-toggle-breakpoint)
+    (define-key map (kbd "<deletechar>") #'slime-remove-breakpoint)
+    (define-key map (kbd "q") #'slime-remove-all-breakpoints)
+    (define-key map (kbd "l") #'slime-list-breakpoints)
+    map))
+
+(fset 'slime-breakpoints-command-map slime-breakpoints-command-map)
 
 (defun slime-breakpoints-setup-key-bindings ()
   (add-hook 'lisp-mode-hook
-            (lambda ()
-              ;; (local-set-key (kbd "C-c b") 'slime-break-on-entry)
-              ;; (local-set-key (kbd "C-c C-b k") 'slime-remove-breakpoint)
-              ;; (local-set-key (kbd "C-c C-b K") 'slime-remove-all-breakpoints)
-	      ;; (local-set-key (kbd "C-c C-b ") 'slime-list-breakpoints)
-	      )))
+          (lambda ()
+	    (local-set-key (kbd "C-c b") 'slime-breakpoints-command-map))))
 
 (defun slime-breakpoints--extend-slime-menu ()
   (easy-menu-add-item 'menubar-slime '("Debugging") "---")
