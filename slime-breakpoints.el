@@ -30,6 +30,7 @@
 (require 'slime)
 
 (defun slime-break-on-entry (function-name)
+  "Install breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Break on entry: ")))
   (when (not function-name)
     (error "No function name given"))
