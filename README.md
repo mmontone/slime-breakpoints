@@ -37,3 +37,65 @@ slime-remove-breakpoint	      M-x ... RET
 slime-toggle-breakpoint	      M-x ... RET
    Toggle breakpoint on FUNCTION-NAME.
 ```
+
+You can also use from Common Lisp directly. The `breakpoints` package exports this functions:
+
+### break-on-entry
+
+```lisp
+(function-name)
+```
+
+Setup a breakpoint on entry on FUNCTION-NAME.
+
+### breakpoint-installed-p
+
+```lisp
+(function-name)
+```
+
+Wether a breakpoint is installed on FUNCTION-NAME.
+
+### reinstall-all-breakpoints
+
+```lisp
+nil
+```
+
+Reinstall all breakpoints.
+
+When a function is recompiled, the breakpoint is lost. A call to this function reintalls all breakpoints.
+
+### reinstall-breakpoint
+
+```lisp
+(function-name)
+```
+
+Reinstall breakpoint on FUNCTION-NAME.
+
+When a function is recompiled, the breakpoint is lost. A call to this function reinstalls the breakpoint.
+
+### remove-all-breakpoints
+
+```lisp
+nil
+```
+
+Remove all installed breakpoints.
+
+### remove-breakpoint
+
+```lisp
+(function-name)
+```
+
+Remove breakpoint on FUNCTION-NAME.
+
+### toggle-breakpoint
+
+```lisp
+(function-name)
+```
+
+Toggle breakpoint on FUNCTION-NAME.
