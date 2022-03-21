@@ -26,6 +26,8 @@ In Emacs, add this repository path to `load-path` and `slime-breakpoints` to `sl
 ## Use
 
 ```
+slime-break-on-entry	      M-x ... RET
+   Install breakpoint on FUNCTION-NAME.
 slime-list-breakpoints	      M-x ... RET
    Open a buffer that list the current installed breakpoints.
 slime-remove-all-breakpoints  M-x ... RET
