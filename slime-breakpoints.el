@@ -140,30 +140,30 @@ The breakpoint remains in the list of breakpoints."
      'face 'slime-breakpoints-button
      'action (lambda (button)
                (slime-reinstall-all-breakpoints))
-     'follow-link t)))
+     'follow-link t)
+    (widget-setup)
+    ))
 
 (defun slime-breakpoints--refresh-breakpoints-buffer ()
   (let ((buffer (get-buffer "*slime-breakpoints*")))
     (when buffer
       (with-current-buffer buffer
-        (kill-all-local-variables)
-        (let ((inhibit-read-only t)
-	      (buffer-read-only nil))
+        (let ((buffer-read-only nil))
           (erase-buffer)
-          ;;(remove-overlays)
           (slime-breakpoints--update-breakpoints-buffer-contents))))))
 
 (defun slime-list-breakpoints ()
   "Open a buffer that list the current installed breakpoints."
   (interactive)
-  (let ((buffer (get-buffer-create "*slime-breakpoints*")))
-    (with-current-buffer buffer
-      (slime-breakpoints--update-breakpoints-buffer-contents)
-      (setq buffer-read-only t)
-      (use-local-map widget-keymap)
-      (widget-setup)
-      (local-set-key (kbd "q") 'kill-buffer)
-      (display-buffer buffer))))
+  (if (get-buffer "*slime-breakpoints*")
+      (switch-to-buffer "*slime-breakpoints*")
+    (let ((buffer (get-buffer-create "*slime-breakpoints*")))
+      (with-current-buffer buffer
+	(slime-breakpoints--update-breakpoints-buffer-contents)
+	(setq buffer-read-only t)
+	(use-local-map widget-keymap)
+	(local-set-key (kbd "q") 'kill-buffer)
+	(display-buffer buffer)))))
 
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
