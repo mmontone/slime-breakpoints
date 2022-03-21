@@ -51,7 +51,7 @@
 
 (defun slime-remove-breakpoint (function-name)
   "Remove breakpoint on FUNCTION-NAME."
-  (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
+  (interactive (list (slime-read-symbol-name "Remove breakpoint: ")))
   (when (not function-name)
     (error "No function name given"))
   (slime-eval `(breakpoints:remove-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
@@ -63,6 +63,22 @@
   (interactive)
   (slime-eval '(breakpoints:remove-all-breakpoints))
   (message "All breakpoints removed.")
+  (slime-breakpoints--refresh-breakpoints-buffer))
+
+(defun slime-reinstall-breakpoint (function-name)
+  "Reinstall breakpoint on FUNCTION-NAME."
+  (interactive (list (slime-read-symbol-name "Reinstall breakpoint: ")))
+  (when (not function-name)
+    (error "No function name given"))
+  (slime-eval `(breakpoints:reinstall-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
+  (message "Breakpoint reinstalled")
+  (slime-breakpoints--refresh-breakpoints-buffer))
+
+(defun slime-reinstall-all-breakpoints ()
+  "Reinstall all breakpoints."
+  (interactive)
+  (slime-eval '(breakpoints:reinstall-all-breakpoints))
+  (message "All breakpoints reinstalled.")
   (slime-breakpoints--refresh-breakpoints-buffer))
 
 (defface slime-breakpoints-button
@@ -100,6 +116,13 @@
      'face 'slime-breakpoints-button
      'action (lambda (button)
                (slime-remove-all-breakpoints))
+     'follow-link t)
+    (insert " ")
+    (insert-button
+     "Reinstall all"
+     'face 'slime-breakpoints-button
+     'action (lambda (button)
+               (slime-reinstall-all-breakpoints))
      'follow-link t)))
 
 (defun slime-breakpoints--refresh-breakpoints-buffer ()
