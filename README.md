@@ -26,15 +26,15 @@ In Emacs, add this repository path to `load-path` and `slime-breakpoints` to `sl
 ## Use
 
 ```
-slime-break-on-entry	      M-x ... RET
+slime-break-on-entry	      C-c b RET
    Install breakpoint on FUNCTION-NAME.
-slime-list-breakpoints	      M-x ... RET
+slime-list-breakpoints	      C-c b l
    Open a buffer that list the current installed breakpoints.
-slime-remove-all-breakpoints  M-x ... RET
+slime-remove-all-breakpoints  C-c b q
    Remove all breakpoints.
-slime-remove-breakpoint	      M-x ... RET
+slime-remove-breakpoint	      C-c b <deletechar>
    Remove breakpoint on FUNCTION-NAME.
-slime-toggle-breakpoint	      M-x ... RET
+slime-toggle-breakpoint	      C-c b SPC
    Toggle breakpoint on FUNCTION-NAME.
 ```
 
