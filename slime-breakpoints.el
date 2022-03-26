@@ -29,11 +29,42 @@
 
 (require 'slime)
 
+(defgroup slime-breakpoints nil
+  "SLIME breakpoints."
+  :group 'slime)
+
+(defcustom slime-breakpoints-display-fringe-indicators nil
+  "When enabled, display indicators for break on the Emacs fringe."
+  :type 'boolean
+  :group 'slime-breakpoints)
+
+(defvar slime-breakpoints--fringe-indicators (make-hash-table :test 'equal))
+
+(defun slime-breakpoints--display-break-indicator (function-name)
+  "Display indicator on the fringe for break on FUNCTION-NAME."
+  (let ((break-indicator (make-overlay (point) (point))))
+    (overlay-put break-indicator
+		 'before-string
+		 (propertize "x" 'display 
+                         (list 'left-fringe
+                               'filled-square 'error)))
+    (puthash function-name break-indicator slime-breakpoints--fringe-indicators)))
+
+(defun slime-breakpoints--delete-break-indicator (function-name)
+  "Remove display of break indicator on FUNCTION-NAME."
+  (let ((break-indicator (gethash function-name slime-breakpoints--fringe-indicators)))
+    (when break-indicator
+      (remhash function-name slime-breakpoints--fringe-indicators)
+      (delete-overlay break-indicator))))
+
 (defun slime-break-on-entry (function-name)
   "Install breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Break on entry: ")))
   (when (not function-name)
     (error "No function name given"))
+  (when slime-breakpoints-display-fringe-indicators
+    (slime-edit-definition function-name)
+    (slime-breakpoints--display-break-indicator function-name))
   (slime-eval `(breakpoints:break-on-entry (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
   (message "Breakpoint installed on %s entry" function-name)
   (slime-breakpoints--refresh-breakpoints-buffer))
@@ -56,6 +87,7 @@
     (error "No function name given"))
   (slime-eval `(breakpoints:remove-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
   (message "Breakpoint removed")
+  (slime-breakpoints--delete-break-indicator function-name)
   (slime-breakpoints--refresh-breakpoints-buffer))
 
 (defun slime-remove-all-breakpoints ()
