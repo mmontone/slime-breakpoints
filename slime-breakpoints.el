@@ -69,6 +69,18 @@
   (message "Breakpoint installed on %s entry" function-name)
   (slime-breakpoints--refresh-breakpoints-buffer))
 
+(defun slime-step-on-entry (function-name)
+  "Start stepping when FUNCTION-NAME is called."
+  (interactive (list (slime-read-symbol-name "Step on entry: ")))
+  (when (not function-name)
+    (error "No function name given"))
+  (when slime-breakpoints-display-fringe-indicators
+    (slime-edit-definition function-name)
+    (slime-breakpoints--display-break-indicator function-name))
+  (slime-eval `(breakpoints:step-on-entry (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
+  (message "Breakpoint installed on %s entry" function-name)
+  (slime-breakpoints--refresh-breakpoints-buffer))
+
 (defun slime-toggle-breakpoint (function-name)
   "Toggle breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
@@ -202,6 +214,7 @@ The breakpoint remains in the list of breakpoints."
     (define-key map (kbd "RET") #'slime-break-on-entry)
     (define-key map (kbd "SPC") #'slime-toggle-breakpoint)
     (define-key map (kbd "<deletechar>") #'slime-remove-breakpoint)
+    (define-key map (kbd "s") #'slime-step-on-entry)
     (define-key map (kbd "q") #'slime-remove-all-breakpoints)
     (define-key map (kbd "l") #'slime-list-breakpoints)
     map))
@@ -217,6 +230,8 @@ The breakpoint remains in the list of breakpoints."
   (easy-menu-add-item 'menubar-slime '("Debugging") "---")
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Break on entry..." slime-break-on-entry])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Step on entry..." slime-step-on-entry])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Toggle breakpoint at point" slime-toggle-breakpoint])
   (easy-menu-add-item 'menubar-slime '("Debugging")

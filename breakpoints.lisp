@@ -2,6 +2,7 @@
   (:use :cl)
   (:export
    #:break-on-entry
+   #:step-on-entry
    #:toggle-breakpoint
    #:remove-breakpoint
    #:remove-all-breakpoints
@@ -40,6 +41,23 @@
           (list :type :break-on-entry
                 :replaced original-function
                 :break function-with-break)))
+  t)
+
+(defun step-on-entry (function-name)
+  "Start stepping when function named FUNCTION-NAME is invoked."
+  (check-type function-name symbol)
+  (when (breakpoint-installed-p function-name)
+    (return-from step-on-entry nil))
+  (let* ((original-function (symbol-function function-name))
+         (function-with-step
+           (lambda (&rest args)
+           (step
+            (apply original-function args)))))
+    (setf (symbol-function function-name) function-with-step)
+    (setf (gethash function-name *breakpoints*)
+          (list :type :step-on-entry
+                :replaced original-function
+                :break function-with-step)))
   t)
 
 (defun remove-breakpoint (function-name)
