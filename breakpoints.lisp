@@ -29,8 +29,10 @@
 (defun break-on-entry (function-name)
   "Setup a breakpoint on entry on FUNCTION-NAME."
   (check-type function-name symbol)
-  (when (breakpoint-installed-p function-name)
-    (return-from break-on-entry nil))
+
+  ;; First remove any breakpoints installed on FUNCTION-NAME, if any
+  (remove-breakpoint function-name)
+  
   (let* ((original-function (symbol-function function-name))
          (function-with-break
            (lambda (&rest args)
@@ -46,8 +48,10 @@
 (defun step-on-entry (function-name)
   "Start stepping when function named FUNCTION-NAME is invoked."
   (check-type function-name symbol)
-  (when (breakpoint-installed-p function-name)
-    (return-from step-on-entry nil))
+  
+  ;; First remove any breakpoints installed on FUNCTION-NAME, if any
+  (remove-breakpoint function-name)
+  
   (let* ((original-function (symbol-function function-name))
          (function-with-step
            (lambda (&rest args)

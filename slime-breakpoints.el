@@ -57,14 +57,21 @@
       (remhash function-name slime-breakpoints--fringe-indicators)
       (delete-overlay break-indicator))))
 
+(defun slime-breakpoints--set-fringe-indicator (function-name enable)
+  "Toggle fringe indicator on FUNCTION-NAME following ENABLE."
+  (when slime-breakpoints-display-fringe-indicators
+    (slime-edit-definition function-name)
+    (if enable
+	(slime-breakpoints--display-break-indicator function-name)
+      (slime-breakpoints--delete-break-indicator function-name))))
+
 (defun slime-break-on-entry (function-name)
   "Install breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Break on entry: ")))
   (when (not function-name)
     (error "No function name given"))
-  (when slime-breakpoints-display-fringe-indicators
-    (slime-edit-definition function-name)
-    (slime-breakpoints--display-break-indicator function-name))
+  (slime-remove-breakpoint function-name)
+  (slime-breakpoints--set-fringe-indicator function-name t)
   (slime-eval `(breakpoints:break-on-entry (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
   (message "Breakpoint installed on %s entry" function-name)
   (slime-breakpoints--refresh-breakpoints-buffer))
@@ -74,9 +81,8 @@
   (interactive (list (slime-read-symbol-name "Step on entry: ")))
   (when (not function-name)
     (error "No function name given"))
-  (when slime-breakpoints-display-fringe-indicators
-    (slime-edit-definition function-name)
-    (slime-breakpoints--display-break-indicator function-name))
+  (slime-remove-breakpoint function-name)
+  (slime-breakpoints--set-fringe-indicator function-name t)
   (slime-eval `(breakpoints:step-on-entry (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
   (message "Breakpoint installed on %s entry" function-name)
   (slime-breakpoints--refresh-breakpoints-buffer))
@@ -86,11 +92,16 @@
   (interactive (list (slime-read-symbol-name "Toggle breakpoint: ")))
   (when (not function-name)
     (error "No function name given"))
-  (let ((enabled (slime-eval `(breakpoints:toggle-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))))
-    (if enabled
-        (message "Breakpoint installed on %s entry" function-name)
-      (message "Breakpoint removed from %s" function-name)))
-  (slime-breakpoints--refresh-breakpoints-buffer))
+  (let ((installed (slime-eval `(breakpoints:breakpoint-installed-p (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))))
+    (when (not installed)
+      (slime-breakpoints--set-fringe-indicator function-name t))
+    (slime-eval `(breakpoints:toggle-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name))))
+    (when installed
+      (slime-breakpoints--set-fringe-indicator function-name nil))
+    (if installed
+	(message "Breakpoint removed from %s" function-name)
+      (message "Breakpoint installed on %s entry" function-name))
+    (slime-breakpoints--refresh-breakpoints-buffer)))
 
 (defun slime-remove-breakpoint (function-name)
   "Remove breakpoint on FUNCTION-NAME."
