@@ -186,7 +186,7 @@ The breakpoint remains in the list of breakpoints."
        :on "[Enabled]"
        :off "[Disabled]"
        :notify (lambda (wid &rest ignore)
-		 (slime-toggle-breakpoint (cl-getf breakpoint :name)))
+		 (slime-toggle-breakpoint (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
        (cl-getf breakpoint :enabled)))
     (newline 2)
     (insert-button
