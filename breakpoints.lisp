@@ -11,18 +11,27 @@
    #:disable-breakpoint
    #:disable-all-breakpoints
    #:breakpoint-installed-p
+   #:find-breakpoint
    #:*breakpoints*))
 
 (in-package :breakpoints)
 
 (defvar *breakpoints* (make-hash-table))
+(defvar *save-definitions* t
+  "When enabled, the original functions definitions is saved in the breakpoint, to give the SLIME interface the possibility to follow the correct source locations of the function with a breakpoint installed.
+Making this optional, since it can have a performance penalty when installing breakpionts.")
+
+(defun find-breakpoint (function-name)
+  (check-type function-name symbol)
+  (gethash function-name *breakpoints*))
 
 (defun breakpoint-installed-p (function-name)
   "Wether a breakpoint is installed on FUNCTION-NAME."
+  (check-type function-name symbol)
   (let ((breakpoint (gethash function-name *breakpoints*)))
     (when breakpoint
-      (destructuring-bind (&key type replaced break) breakpoint
-        (declare (ignore type replaced))
+      (destructuring-bind (&key type replaced break definitions) breakpoint
+        (declare (ignore type replaced definitions))
         (when (eq (symbol-function function-name) break)
           (return-from breakpoint-installed-p t))))))
 
@@ -33,7 +42,9 @@
   ;; First remove any breakpoints installed on FUNCTION-NAME, if any
   (remove-breakpoint function-name)
   
-  (let* ((original-function (symbol-function function-name))
+  (let* ((definitions (when *save-definitions*
+			(swank:find-definitions-for-emacs (prin1-to-string function-name))))
+	 (original-function (symbol-function function-name))
          (function-with-break
            (lambda (&rest args)
            (break)
@@ -42,7 +53,8 @@
     (setf (gethash function-name *breakpoints*)
           (list :type :break-on-entry
                 :replaced original-function
-                :break function-with-break)))
+                :break function-with-break
+		:definitions definitions)))
   t)
 
 (defun step-on-entry (function-name)
@@ -52,7 +64,9 @@
   ;; First remove any breakpoints installed on FUNCTION-NAME, if any
   (remove-breakpoint function-name)
   
-  (let* ((original-function (symbol-function function-name))
+  (let* ((definitions (when *save-definitions*
+			(swank:find-definitions-for-emacs (prin1-to-string function-name))))
+	 (original-function (symbol-function function-name))
          (function-with-step
            (lambda (&rest args)
            (step
@@ -61,7 +75,8 @@
     (setf (gethash function-name *breakpoints*)
           (list :type :step-on-entry
                 :replaced original-function
-                :break function-with-step)))
+                :break function-with-step
+		:definitions definitions)))
   t)
 
 (defun remove-breakpoint (function-name)
@@ -72,8 +87,8 @@
     (return-from remove-breakpoint nil))
 
   (let ((breakpoint (gethash function-name *breakpoints*)))
-    (destructuring-bind (&key type replaced break) breakpoint
-      (declare (ignore type))
+    (destructuring-bind (&key type replaced break definitions) breakpoint
+      (declare (ignore type definitions))
       (when (eq (symbol-function function-name) break)
         (setf (symbol-function function-name) replaced)))
     (remhash function-name *breakpoints*)
@@ -88,8 +103,8 @@ The breakpoint remains in the list of breakpoints."
     (return-from disable-breakpoint nil))
 
   (let ((breakpoint (gethash function-name *breakpoints*)))
-    (destructuring-bind (&key type replaced break) breakpoint
-      (declare (ignore type))
+    (destructuring-bind (&key type replaced break definitions) breakpoint
+      (declare (ignore type definitions))
       (when (eq (symbol-function function-name) break)
         (setf (symbol-function function-name) replaced)))
     t))

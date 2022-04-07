@@ -65,6 +65,12 @@
 	(slime-breakpoints--display-break-indicator function-name)
       (slime-breakpoints--delete-break-indicator function-name))))
 
+(defun slime-breakpoints--delete-all-fringe-indicators ()
+  "Delete all fringe indicators."
+  (dolist (overlay (hash-table-values slime-breakpoints--fringe-indicators))
+    (delete-overlay overlay))
+  (setq slime-breakpoints--fringe-indicators (make-hash-table :test 'equal)))
+
 (defun slime-break-on-entry (function-name)
   "Install breakpoint on FUNCTION-NAME."
   (interactive (list (slime-read-symbol-name "Break on entry: ")))
@@ -117,6 +123,7 @@
   "Remove all breakpoints."
   (interactive)
   (slime-eval '(breakpoints:remove-all-breakpoints))
+  (slime-breakpoints--delete-all-fringe-indicators)
   (message "All breakpoints removed.")
   (slime-breakpoints--refresh-breakpoints-buffer))
 
@@ -135,6 +142,7 @@ The breakpoint remains in the list of breakpoints."
   (interactive)
   (slime-eval '(breakpoints:disable-all-breakpoints))
   (message "All breakpoints disabled.")
+  (slime-breakpoints--delete-all-fringe-indicators)
   (slime-breakpoints--refresh-breakpoints-buffer))
 
 (defun slime-reinstall-breakpoint (function-name)
@@ -170,7 +178,7 @@ The breakpoint remains in the list of breakpoints."
       (insert-button
        (symbol-name (cl-getf breakpoint :name))
        'action (lambda (button)
-		 (slime-edit-definition (cl-getf breakpoint :name)))
+		 (slime-edit-definition (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
        'follow-link t)
       (indent-to-column 60)
       (widget-create
@@ -178,9 +186,7 @@ The breakpoint remains in the list of breakpoints."
        :on "[Enabled]"
        :off "[Disabled]"
        :notify (lambda (wid &rest ignore)
-		 (if (widget-value wid)
-                     (slime-break-on-entry (cl-getf breakpoint :name))
-                   (slime-disable-breakpoint (cl-getf breakpoint :name))))
+		 (slime-toggle-breakpoint (cl-getf breakpoint :name)))
        (cl-getf breakpoint :enabled)))
     (newline 2)
     (insert-button
@@ -219,6 +225,21 @@ The breakpoint remains in the list of breakpoints."
 	(use-local-map widget-keymap)
 	(local-set-key (kbd "q") 'kill-buffer)
 	(display-buffer buffer)))))
+
+;; -- Navigation
+
+;; This advices slime-list-definition function so that original source locations of breakpointed functions are followed correctly.
+
+(defun slime-breakpoints--find-definitions (function-name)
+  (slime-eval `(cl:getf (breakpoints:find-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name)))
+			:definitions)))
+
+
+(defun slime-breakpoints--find-definitions-advice (find-defs name)
+  (or (slime-breakpoints--find-definitions name)
+      (funcall find-defs name)))
+
+(advice-add 'slime-find-definitions :around 'slime-breakpoints--find-definitions-advice)
 
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
