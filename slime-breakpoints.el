@@ -44,10 +44,10 @@
   "Display indicator on the fringe for break on FUNCTION-NAME."
   (let ((break-indicator (make-overlay (point) (point))))
     (overlay-put break-indicator
-		 'before-string
-		 (propertize "x" 'display 
-                         (list 'left-fringe
-                               'filled-square 'error)))
+                 'before-string
+                 (propertize "x" 'display
+                             (list 'left-fringe
+                                   'filled-square 'error)))
     (puthash function-name break-indicator slime-breakpoints--fringe-indicators)))
 
 (defun slime-breakpoints--delete-break-indicator (function-name)
@@ -62,7 +62,7 @@
   (when slime-breakpoints-display-fringe-indicators
     (slime-edit-definition function-name)
     (if enable
-	(slime-breakpoints--display-break-indicator function-name)
+        (slime-breakpoints--display-break-indicator function-name)
       (slime-breakpoints--delete-break-indicator function-name))))
 
 (defun slime-breakpoints--delete-all-fringe-indicators ()
@@ -105,7 +105,7 @@
     (when installed
       (slime-breakpoints--set-fringe-indicator function-name nil))
     (if installed
-	(message "Breakpoint removed from %s" function-name)
+        (message "Breakpoint removed from %s" function-name)
       (message "Breakpoint installed on %s entry" function-name))
     (slime-breakpoints--refresh-breakpoints-buffer)))
 
@@ -178,7 +178,7 @@ The breakpoint remains in the list of breakpoints."
       (insert-button
        (symbol-name (cl-getf breakpoint :name))
        'action (lambda (button)
-		 (slime-edit-definition (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
+                 (slime-edit-definition (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
        'follow-link t)
       (indent-to-column 60)
       (widget-create
@@ -186,7 +186,7 @@ The breakpoint remains in the list of breakpoints."
        :on "[Enabled]"
        :off "[Disabled]"
        :notify (lambda (wid &rest ignore)
-		 (slime-toggle-breakpoint (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
+                 (slime-toggle-breakpoint (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
        (cl-getf breakpoint :enabled)))
     (newline 2)
     (insert-button
@@ -220,11 +220,11 @@ The breakpoint remains in the list of breakpoints."
       (switch-to-buffer "*slime-breakpoints*")
     (let ((buffer (get-buffer-create "*slime-breakpoints*")))
       (with-current-buffer buffer
-	(slime-breakpoints--update-breakpoints-buffer-contents)
-	(setq buffer-read-only t)
-	(use-local-map widget-keymap)
-	(local-set-key (kbd "q") 'kill-buffer)
-	(display-buffer buffer)))))
+        (slime-breakpoints--update-breakpoints-buffer-contents)
+        (setq buffer-read-only t)
+        (use-local-map widget-keymap)
+        (local-set-key (kbd "q") 'kill-buffer)
+        (display-buffer buffer)))))
 
 ;; -- Navigation
 
@@ -232,7 +232,7 @@ The breakpoint remains in the list of breakpoints."
 
 (defun slime-breakpoints--find-definitions (function-name)
   (slime-eval `(cl:getf (breakpoints:find-breakpoint (cl:read-from-string ',(slime-qualify-cl-symbol-name function-name)))
-			:definitions)))
+                        :definitions)))
 
 
 (defun slime-breakpoints--find-definitions-advice (find-defs name)
@@ -240,6 +240,68 @@ The breakpoint remains in the list of breakpoints."
       (funcall find-defs name)))
 
 (advice-add 'slime-find-definitions :around 'slime-breakpoints--find-definitions-advice)
+
+;; -- Additional useful debugging commands
+
+(defun slime-last-expression-with-positions ()
+  "Return the last expression and start and end positions, in a list."
+  (let (start
+        (end (point)))
+    (save-excursion
+      (backward-sexp)
+      (setq start (point)))
+    (list
+     (buffer-substring-no-properties start end)
+     start end)))
+
+(defun slime-region-for-last-expression ()
+  "Return the region for last expression."
+  (let (start
+        (end (point)))
+    (save-excursion
+      (backward-sexp)
+      (setq start (point)))
+    (list start end)))
+
+(defun slime-wrap-last-expression (wrapper)
+  "Wrap the expression at point.
+WRAPPER is a function that takes the expression at point string,
+and is expected to return a wrapped version."
+  (cl-destructuring-bind (last-expression exp-start exp-end)
+      (slime-last-expression-with-positions)
+    (cl-destructuring-bind (defun-start defun-end)
+        (slime-region-for-defun-at-point)
+      ;; Remove the expression from the function source
+      (let* ((start-region (buffer-substring-no-properties defun-start exp-start))
+             (end-region (buffer-substring-no-properties exp-end defun-end))
+             (wrapped-expression (funcall wrapper last-expression))
+             (wrapped-defun-source (concat start-region wrapped-expression end-region)))
+        wrapped-defun-source))))
+
+(defun slime-break-with-last-expression (datum)
+  "Compile function at point with a BREAK at last expression position.
+DATUM is the string passed as first argument to CL:BREAK function.
+The CL:BREAK function is invoked with last expression value as second argument.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
+  (interactive (list (read-string "Datum: " "~s")))
+  (let ((source-with-break
+         (slime-wrap-last-expression
+          (lambda (exp)
+            (format "(cl:prog1 %s (cl:break \"%s\" %s))" exp datum exp)))))
+    (slime-compile-string source-with-break 0)))
+
+(defun slime-trace-last-expression (datum)
+  "Compile function at point with a 'trace' expression at last expression position.
+DATUM is the string passed to CL:FORMAT as control-string.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
+  (interactive (list (read-string "Datum: " "~s~%")))
+  (let ((source-with-trace
+         (slime-wrap-last-expression
+          (lambda (exp)
+            (format "(cl:prog1 %s (cl:format cl:t \"%s\" %s))" exp datum exp)))))
+    (slime-compile-string source-with-trace 0)))
 
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
@@ -254,14 +316,20 @@ The breakpoint remains in the list of breakpoints."
 (fset 'slime-breakpoints-command-map slime-breakpoints-command-map)
 
 (defun slime-breakpoints-setup-key-bindings ()
+  "Setup key bindings for `slime-breakpoints' package."
   (add-hook 'lisp-mode-hook
-          (lambda ()
-	    (local-set-key (kbd "C-c b") 'slime-breakpoints-command-map))))
+            (lambda ()
+              (local-set-key (kbd "C-c b") 'slime-breakpoints-command-map))))
 
 (defun slime-breakpoints--extend-slime-menu ()
+  "Extend slime debugging menu."
   (easy-menu-add-item 'menubar-slime '("Debugging") "---")
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Break on entry..." slime-break-on-entry])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Break with last expression" slime-break-with-last-expression])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Trace last expression" slime-trace-last-expression])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Step on entry..." slime-step-on-entry])
   (easy-menu-add-item 'menubar-slime '("Debugging")

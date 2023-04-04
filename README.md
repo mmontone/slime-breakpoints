@@ -36,6 +36,10 @@ slime-remove-breakpoint	      C-c b <deletechar>
    Remove breakpoint on FUNCTION-NAME.
 slime-toggle-breakpoint	      C-c b SPC
    Toggle breakpoint on FUNCTION-NAME.
+slime-break-with-last-expression
+   Compile function at point with a BREAK at last expression position.
+slime-trace-last-expression
+   Compile function at point with a 'trace' expression at last expression position.
 ```
 
 You can also use from Common Lisp directly. The `breakpoints` package exports this functions:
