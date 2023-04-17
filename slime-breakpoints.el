@@ -263,6 +263,32 @@ The breakpoint remains in the list of breakpoints."
       (setq start (point)))
     (list start end)))
 
+(defun slime-expression-next-expression ()
+  "Return the next Lisp expression at point."
+  (buffer-substring-no-properties
+   (point)
+   (save-excursion (forward-sexp) (point))))
+
+(defun slime-region-for-next-expression ()
+  "Return the region for next expression."
+  (let (start (point)
+              end)
+    (save-excursion
+      (forward-sexp)
+      (setq end (point)))
+    (list start end)))
+
+(defun slime-next-expression-with-positions ()
+  "Return the next expression and start and end positions, in a list."
+  (let (start (point)
+              end)
+    (save-excursion
+      (forward-sexp)
+      (setq end (point)))
+    (list
+     (buffer-substring-no-properties start end)
+     start end)))
+
 (defun slime-wrap-last-expression (wrapper)
   "Wrap the expression at point.
 WRAPPER is a function that takes the expression at point string,
@@ -303,6 +329,17 @@ Use `slime-compile-defun' on the function source code to recompile without the d
             (format "(cl:prog1 %s (cl:format cl:t \"%s\" %s))" exp datum exp)))))
     (slime-compile-string source-with-trace 0)))
 
+(defun slime-step-in-last-expression ()
+  "Compile function at point with a 'step' expression at last expression position.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
+  (interactive)
+  (let ((source-with-trace
+         (slime-wrap-last-expression
+          (lambda (exp)
+            (format "(cl:step %s)" exp)))))
+    (slime-compile-string source-with-trace 0)))
+
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") #'slime-break-on-entry)
@@ -332,6 +369,8 @@ Use `slime-compile-defun' on the function source code to recompile without the d
                       ["Trace last expression" slime-trace-last-expression])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Step on entry..." slime-step-on-entry])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Step in last expression..." slime-step-in-last-expression])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Toggle breakpoint at point" slime-toggle-breakpoint])
   (easy-menu-add-item 'menubar-slime '("Debugging")
