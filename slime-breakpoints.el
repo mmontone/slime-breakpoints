@@ -177,7 +177,7 @@ The breakpoint remains in the list of breakpoints."
     (dolist (breakpoint breakpoints-list)
       (insert-button
        (symbol-name (cl-getf breakpoint :name))
-       'action (lambda (button)
+       'action (lambda (_)
                  (slime-edit-definition (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
        'follow-link t)
       (indent-to-column 60)
@@ -185,21 +185,21 @@ The breakpoint remains in the list of breakpoints."
        'toggle
        :on "[Enabled]"
        :off "[Disabled]"
-       :notify (lambda (wid &rest ignore)
+       :notify (lambda (_ &rest _)
                  (slime-toggle-breakpoint (slime-qualify-cl-symbol-name (cl-getf breakpoint :name))))
        (cl-getf breakpoint :enabled)))
     (newline 2)
     (insert-button
      "Remove all"
      'face 'slime-breakpoints-button
-     'action (lambda (button)
+     'action (lambda (_)
                (slime-remove-all-breakpoints))
      'follow-link t)
     (insert " ")
     (insert-button
      "Reinstall all"
      'face 'slime-breakpoints-button
-     'action (lambda (button)
+     'action (lambda (_)
                (slime-reinstall-all-breakpoints))
      'follow-link t)
     (widget-setup)
@@ -271,8 +271,8 @@ The breakpoint remains in the list of breakpoints."
 
 (defun slime-region-for-next-expression ()
   "Return the region for next expression."
-  (let (start (point)
-              end)
+  (let ((start (point))
+        end)
     (save-excursion
       (forward-sexp)
       (setq end (point)))
@@ -280,8 +280,8 @@ The breakpoint remains in the list of breakpoints."
 
 (defun slime-next-expression-with-positions ()
   "Return the next expression and start and end positions, in a list."
-  (let (start (point)
-              end)
+  (let ((start (point))
+        end)
     (save-excursion
       (forward-sexp)
       (setq end (point)))
@@ -301,6 +301,21 @@ and is expected to return a wrapped version."
       (let* ((start-region (buffer-substring-no-properties defun-start exp-start))
              (end-region (buffer-substring-no-properties exp-end defun-end))
              (wrapped-expression (funcall wrapper last-expression))
+             (wrapped-defun-source (concat start-region wrapped-expression end-region)))
+        wrapped-defun-source))))
+
+(defun slime-wrap-next-expression (wrapper)
+  "Wrap the expression at point.
+WRAPPER is a function that takes the expression at point string,
+and is expected to return a wrapped version."
+  (cl-destructuring-bind (next-expression exp-start exp-end)
+      (slime-next-expression-with-positions)
+    (cl-destructuring-bind (defun-start defun-end)
+        (slime-region-for-defun-at-point)
+      ;; Remove the expression from the function source
+      (let* ((start-region (buffer-substring-no-properties defun-start exp-start))
+             (end-region (buffer-substring-no-properties exp-end defun-end))
+             (wrapped-expression (funcall wrapper next-expression))
              (wrapped-defun-source (concat start-region wrapped-expression end-region)))
         wrapped-defun-source))))
 
@@ -334,11 +349,22 @@ Use `slime-compile-defun' on the function source code to recompile without the d
 The function at point is compiled with the extra debugging code.
 Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
   (interactive)
-  (let ((source-with-trace
+  (let ((source-with-step
          (slime-wrap-last-expression
           (lambda (exp)
             (format "(cl:step %s)" exp)))))
-    (slime-compile-string source-with-trace 0)))
+    (slime-compile-string source-with-step 0)))
+
+(defun slime-step-in-next-expression ()
+  "Compile function at point with a 'step' expression at next expression position.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
+  (interactive)
+  (let ((source-with-step
+         (slime-wrap-next-expression
+          (lambda (exp)
+            (format "(cl:step %s)" exp)))))
+    (slime-compile-string source-with-step 0)))
 
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
