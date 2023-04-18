@@ -329,7 +329,11 @@ Use `slime-compile-defun' on the function source code to recompile without the d
   (let ((source-with-break
          (slime-wrap-last-expression
           (lambda (exp)
-            (format "(cl:prog1 %s (cl:break \"%s\" %s))" exp datum exp)))))
+            (let* ((inner-break-exp (format "(cl:break \"%s\" %s)" datum exp))
+                   (break-exp (format "(cl:prog1 %s %s)" exp inner-break-exp)))
+              (display-message-or-buffer (format "Break installed with: %s" inner-break-exp))
+              (view-echo-area-messages)
+              break-exp)))))
     (slime-compile-string source-with-break 0)))
 
 (defun slime-trace-last-expression (datum)
