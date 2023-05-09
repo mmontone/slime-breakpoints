@@ -336,6 +336,20 @@ Use `slime-compile-defun' on the function source code to recompile without the d
               break-exp)))))
     (slime-compile-string source-with-break 0)))
 
+(defun slime-insert-break-at-point ()
+  "Compile function at point with a BREAK at cursor position.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
+  (interactive)
+  (cl-destructuring-bind (defun-start defun-end)
+      (slime-region-for-defun-at-point)
+    (let* ((start-region (buffer-substring-no-properties defun-start (point)))
+           (end-region (buffer-substring-no-properties (point) defun-end))
+           (wrapped-defun-source (concat start-region " (CL:BREAK) " end-region)))
+      (display-message-or-buffer (format "Break inserted: %s" wrapped-defun-source))
+      (view-echo-area-messages)
+      (slime-compile-string wrapped-defun-source 0))))
+
 (defun slime-trace-last-expression (datum)
   "Compile function at point with a 'trace' expression at last expression position.
 DATUM is the string passed to CL:FORMAT as control-string.
@@ -395,6 +409,8 @@ Use `slime-compile-defun' on the function source code to recompile without the d
                       ["Break on entry..." slime-break-on-entry])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Break with last expression" slime-break-with-last-expression])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Insert break at point" slime-insert-break-at-point])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Trace last expression" slime-trace-last-expression])
   (easy-menu-add-item 'menubar-slime '("Debugging")
