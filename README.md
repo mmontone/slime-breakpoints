@@ -103,3 +103,9 @@ Remove breakpoint on FUNCTION-NAME.
 ```
 
 Toggle breakpoint on FUNCTION-NAME.
+
+# SLDB-SOURCE-EVAL
+
+SLIME debugger (SLDB) extension that adds debugger context based evaluation directly from Lisp source buffers.
+
+![sldb-source-eval](sldb-source-eval.gif)
