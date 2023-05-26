@@ -92,6 +92,14 @@
           'slime-write-string
         'slime-display-eval-result))))
 
+(defun sldb-source-eval-inspect (string)
+  "Prompt for an expression and inspect it in the current debugger frame."
+  (interactive (list (slime-read-from-minibuffer
+                      "Inspect in frame (evaluated): "
+                      (slime-sexp-at-point))))
+  (slime-eval-async `(swank:inspect-in-frame ,string ,sldb-source-eval-frame-number)
+    'slime-open-inspector))
+
 (defun sldb-source-eval-show-source ()
   "Highlight the frame at point's expression in a source code buffer."
   (interactive)
