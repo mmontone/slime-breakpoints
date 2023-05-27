@@ -123,7 +123,7 @@
   :keymap sldb-source-eval-mode-map
   (setq-local sldb-source-eval-mode-enabled t))
 
-(defun sldb-source-eval-quit ()
+(defun sldb-source-eval-quit (&optional _args)
   "Disable sldb-source-eval mode in all buffers."
   (interactive)
   (dolist (buffer (buffer-list))
