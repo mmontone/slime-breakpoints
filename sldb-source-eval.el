@@ -143,5 +143,10 @@
 ;; Redirect to a buffer with sldb-source-eval mode enabled.
 (advice-add 'sldb-show-source :override 'sldb-source-eval-show-source)
 
+(define-slime-contrib sldb-source-eval
+  "SLIME debugger (SLDB) extension that adds debugger context based evaluation directly from Lisp source buffers."
+  (:authors "Mariano Montone")
+  (:license "GPL"))
+
 (provide 'sldb-source-eval)
 ;;; sldb-source-eval.el ends here
