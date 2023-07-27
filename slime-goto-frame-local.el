@@ -106,9 +106,11 @@
         (setq slime-goto-frame-local--last-symbol symbol-at-point)
         (slime-goto-frame-local symbol-at-point)))))
 
-(add-to-list 'slime-mode-hook
-             (lambda ()
-               (add-to-list 'post-command-hook #'slime-goto-frame-local--post-command)))
+(defun slime-goto-frame-local-on-cursor-move ()
+  "Setup slime-goto-frame-local when cursor moves."
+  (add-to-list 'slime-mode-hook
+               (lambda ()
+                 (add-to-list 'post-command-hook #'slime-goto-frame-local--post-command))))
 
 (provide 'slime-goto-frame-local)
 ;;; slime-goto-frame-local.el ends here
