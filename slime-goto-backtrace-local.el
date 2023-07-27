@@ -1,8 +1,8 @@
 ;;; slime-goto-backtrace-local.el --- Navigation to backtrace locals from source code in SLIME.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023  Marian
+;; Copyright (C) 2023  Mariano Montone
 
-;; Author: Marian <marianomontone@gmail.com>
+;; Author: Mariano Montone <marianomontone@gmail.com>
 ;; Keywords: lisp, tools
 
 ;; This program is free software; you can redistribute it and/or modify
