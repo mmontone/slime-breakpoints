@@ -1,4 +1,4 @@
-;;; slime-goto-backtrace-local.el --- Navigation to backtrace locals from source code in SLIME.  -*- lexical-binding: t; -*-
+;;; slime-goto-frame-local.el --- Navigation to backtrace locals from source code in SLIME.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023  Mariano Montone
 
@@ -44,7 +44,7 @@
 (defun slime-symbol-package (symbol)
   )
 
-(defun slime-goto-backtrace-local (symbol)
+(defun slime-goto-frame-local (symbol)
   "Go to backtrace local for SYMBOL."
   (interactive (list (slime-read-symbol-name "Navigate to backtrace local: ")))
   (let ((current-buffer (current-buffer))
@@ -94,21 +94,21 @@
 
 ;; Hook for navigating to current symbol-at-point
 
-(defvar slime-goto-backtrace-local--last-symbol nil
+(defvar slime-goto-frame-local--last-symbol nil
   "The last symbol visited.")
 
-(defun slime-goto-backtrace-local--post-command ()
+(defun slime-goto-frame-local--post-command ()
   (when (and (slime-connected-p)
              (sldb-buffers))
     (let ((symbol-at-point (slime-symbol-at-point)))
       (when (and symbol-at-point
-                 (not (string= symbol-at-point slime-goto-backtrace-local--last-symbol)))
-        (setq slime-goto-backtrace-local--last-symbol symbol-at-point)
-        (slime-goto-backtrace-local symbol-at-point)))))
+                 (not (string= symbol-at-point slime-goto-frame-local--last-symbol)))
+        (setq slime-goto-frame-local--last-symbol symbol-at-point)
+        (slime-goto-frame-local symbol-at-point)))))
 
 (add-to-list 'slime-mode-hook
              (lambda ()
-               (add-to-list 'post-command-hook #'slime-goto-backtrace-local--post-command)))
+               (add-to-list 'post-command-hook #'slime-goto-frame-local--post-command)))
 
-(provide 'slime-goto-backtrace-local)
-;;; slime-goto-backtrace-local.el ends here
+(provide 'slime-goto-frame-local)
+;;; slime-goto-frame-local.el ends here
