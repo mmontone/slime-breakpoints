@@ -25,14 +25,15 @@
 ;;; Code:
 
 (require 'slime)
+(require 'hl-line)
 
 (defun slime-maybe-select-sldb-buffer ()
   "Select the SLDB buffer to work with."
   (let ((sldb-buffers (sldb-buffers)))
     (case (length sldb-buffers)
-     (0 nil)
-     (1 (car sldb-buffers))
-     (t (completing-read "SLDB buffer: " sldb-buffers)))))
+      (0 nil)
+      (1 (car sldb-buffers))
+      (t (completing-read "SLDB buffer: " sldb-buffers)))))
 
 (defun slime-qualified-symbol-at-point ()
   (interactive)
@@ -50,6 +51,7 @@
         (sldb-buffer (slime-maybe-select-sldb-buffer)))
     (when sldb-buffer
       (switch-to-buffer-other-window sldb-buffer)
+      (hl-line-mode)
       (sldb-hide-all-frame-details)
       (sldb-beginning-of-backtrace)
       (cl-block loop
@@ -57,12 +59,16 @@
           ;; frame-details has format: (START END FRAME LOCALS CATCHES)
           (cl-destructuring-bind (_start _end _frame locals _catches)
               (sldb-frame-details)
-            (dolist (local locals)
-              (when (string= (cl-getf local :name) symbol)
-                (let ((inhibit-read-only t)
-                      (inhibit-point-motion-hooks t))
-                  (sldb-show-frame-details)
-                  (cl-return-from loop)))))
+            (let ((lines 2))
+              (dolist (local locals)
+                (when (string= (cl-getf local :name) symbol)
+                  (let ((inhibit-read-only t)
+                        (inhibit-point-motion-hooks t))
+                    (sldb-show-frame-details)
+                    (forward-line lines)
+                    (hl-line-highlight)
+                    (cl-return-from loop)))
+                (incf lines))))
           (sldb-forward-frame)))
       (switch-to-buffer-other-window current-buffer))))
 
