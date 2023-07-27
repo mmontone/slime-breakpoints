@@ -26,10 +26,45 @@
 
 (require 'slime)
 
+(defun slime-maybe-select-sldb-buffer ()
+  "Select the SLDB buffer to work with."
+  (let ((sldb-buffers (sldb-buffers)))
+    (case (length sldb-buffers)
+     (0 nil)
+     (1 (car sldb-buffers))
+     (t (completing-read "SLDB buffer: " sldb-buffers)))))
+
+(defun slime-qualified-symbol-at-point ()
+  (interactive)
+  (let ((symbol-at-point (slime-symbol-at-point)))
+    (when symbol-at-point
+      (slime-qualify-cl-symbol-name symbol-at-point))))
+
+(defun slime-symbol-package (symbol)
+  )
+
 (defun slime-goto-backtrace-local (symbol)
   "Go to backtrace local for SYMBOL."
   (interactive (list (slime-read-symbol-name "Navigate to backtrace local: ")))
-  (print symbol))
+  (let ((current-buffer (current-buffer))
+        (sldb-buffer (slime-maybe-select-sldb-buffer)))
+    (when sldb-buffer
+      (switch-to-buffer-other-window sldb-buffer)
+      (sldb-hide-all-frame-details)
+      (sldb-beginning-of-backtrace)
+      (cl-block loop
+        (while (get-text-property (point) 'frame)
+          ;; frame-details has format: (START END FRAME LOCALS CATCHES)
+          (cl-destructuring-bind (_start _end _frame locals _catches)
+              (sldb-frame-details)
+            (dolist (local locals)
+              (when (string= (cl-getf local :name) symbol)
+                (let ((inhibit-read-only t)
+                      (inhibit-point-motion-hooks t))
+                  (sldb-show-frame-details)
+                  (cl-return-from loop)))))
+          (sldb-forward-frame)))
+      (switch-to-buffer-other-window current-buffer))))
 
 (defun sldb-hide-all-frame-details ()
   "Hide details of all frames."
