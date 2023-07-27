@@ -31,5 +31,25 @@
   (interactive (list (slime-read-symbol-name "Navigate to backtrace local: ")))
   (print symbol))
 
+(defun sldb-hide-all-frame-details ()
+  "Hide details of all frames."
+  (interactive)
+  (let ((inhibit-read-only t)
+        (inhibit-point-motion-hooks t))
+    (sldb-beginning-of-backtrace)
+    (while (get-text-property (point) 'frame)
+      (sldb-hide-frame-details)
+      (sldb-forward-frame))))
+
+(defun sldb-show-all-frames-details ()
+  "Show details of all frames."
+  (interactive)
+  (let ((inhibit-read-only t)
+        (inhibit-point-motion-hooks t))
+    (sldb-beginning-of-backtrace)
+    (while (get-text-property (point) 'frame)
+      (sldb-show-frame-details)
+      (sldb-forward-frame))))
+
 (provide 'slime-goto-backtrace-local)
 ;;; slime-goto-backtrace-local.el ends here
