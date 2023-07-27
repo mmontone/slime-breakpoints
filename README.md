@@ -110,3 +110,18 @@ SLIME debugger (SLDB) extension that adds debugger context based evaluation dire
 
 ![sldb-source-eval](sldb-source-eval.png)
 ![sldb-source-eval](sldb-source-eval.gif)
+
+# SLIME-GOTO-FRAME-LOCAL
+
+This is a prototype.
+
+Navigate to backtrace frames locals moving the cursor over the source code.
+
+![slime-goto-frame-local](slime-goto-frame-local.gif)
+
+## Setup
+
+```lisp
+(require 'slime-goto-frame-local)
+(slime-goto-frame-local-on-cursor-move)
+```
