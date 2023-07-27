@@ -41,9 +41,6 @@
     (when symbol-at-point
       (slime-qualify-cl-symbol-name symbol-at-point))))
 
-(defun slime-symbol-package (symbol)
-  )
-
 (defun slime-goto-frame-local (symbol)
   "Go to backtrace local for SYMBOL."
   (interactive (list (slime-read-symbol-name "Navigate to backtrace local: ")))
@@ -62,13 +59,23 @@
             (let ((lines 2))
               (dolist (local locals)
                 (when (string= (cl-getf local :name) symbol)
+                  ;; Local found
                   (let ((inhibit-read-only t)
                         (inhibit-point-motion-hooks t))
+                    ;; Show the frame details and goto the line of the local
                     (sldb-show-frame-details)
                     (forward-line lines)
+                    ;; Highlight the line
                     (hl-line-highlight)
+                    ;; Echo the value of the local
+                    (message (cl-getf local :value))
+                    ;; Try to prevent the message being overwritten by other
+                    ;; processes (eldoc) for 2 seconds.
+                    (sit-for 2)
+                    ;; Exit the loop
                     (cl-return-from loop)))
                 (incf lines))))
+          ;; Try with next frame
           (sldb-forward-frame)))
       (switch-to-buffer-other-window current-buffer))))
 
