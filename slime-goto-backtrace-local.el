@@ -92,5 +92,23 @@
       (sldb-show-frame-details)
       (sldb-forward-frame))))
 
+;; Hook for navigating to current symbol-at-point
+
+(defvar slime-goto-backtrace-local--last-symbol nil
+  "The last symbol visited.")
+
+(defun slime-goto-backtrace-local--post-command ()
+  (when (and (slime-connected-p)
+             (sldb-buffers))
+    (let ((symbol-at-point (slime-symbol-at-point)))
+      (when (and symbol-at-point
+                 (not (string= symbol-at-point slime-goto-backtrace-local--last-symbol)))
+        (setq slime-goto-backtrace-local--last-symbol symbol-at-point)
+        (slime-goto-backtrace-local symbol-at-point)))))
+
+(add-to-list 'slime-mode-hook
+             (lambda ()
+               (add-to-list 'post-command-hook #'slime-goto-backtrace-local--post-command)))
+
 (provide 'slime-goto-backtrace-local)
 ;;; slime-goto-backtrace-local.el ends here
