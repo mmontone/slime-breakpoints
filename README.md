@@ -115,7 +115,7 @@ SLIME debugger (SLDB) extension that adds debugger context based evaluation dire
 
 This is a prototype.
 
-Navigate to backtrace frames locals moving the cursor over the source code.
+Show backtrace frames locals when the ursor over source code.
 
 ![sldb-show-frame-local](sldb-show-frame-local.gif)
 
