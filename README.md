@@ -111,7 +111,7 @@ SLIME debugger (SLDB) extension that adds debugger context based evaluation dire
 ![sldb-source-eval](sldb-source-eval.png)
 ![sldb-source-eval](sldb-source-eval.gif)
 
-# SLIME-GOTO-FRAME-LOCAL
+# SLDB-SHOW-FRAME-LOCAL
 
 This is a prototype.
 
