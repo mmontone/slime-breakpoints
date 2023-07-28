@@ -117,11 +117,11 @@ This is a prototype.
 
 Navigate to backtrace frames locals moving the cursor over the source code.
 
-![slime-goto-frame-local](slime-goto-frame-local.gif)
+![sldb-show-frame-local](sldb-show-frame-local.gif)
 
 ## Setup
 
 ```lisp
-(require 'slime-goto-frame-local)
-(slime-goto-frame-local-on-cursor-move)
+(require 'sldb-show-frame-local)
+(sldb-show-frame-local-on-cursor-move)
 ```

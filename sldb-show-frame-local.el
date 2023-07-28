@@ -1,4 +1,4 @@
-;;; slime-goto-frame-local.el --- Navigation to backtrace locals from source code in SLIME.  -*- lexical-binding: t; -*-
+;;; slime-show-frame-local.el --- Navigation to backtrace locals from source code in SLIME.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023  Mariano Montone
 
@@ -41,7 +41,7 @@
     (when symbol-at-point
       (slime-qualify-cl-symbol-name symbol-at-point))))
 
-(defun slime-goto-frame-local (symbol)
+(defun sldb-show-frame-local (symbol)
   "Go to backtrace local for SYMBOL."
   (interactive (list (slime-read-symbol-name "Navigate to backtrace local: ")))
   (let ((current-buffer (current-buffer))
@@ -101,23 +101,23 @@
 
 ;; Hook for navigating to current symbol-at-point
 
-(defvar slime-goto-frame-local--last-symbol nil
+(defvar sldb-show-frame-local--last-symbol nil
   "The last symbol visited.")
 
-(defun slime-goto-frame-local--post-command ()
+(defun sldb-show-frame-local--post-command ()
   (when (and (slime-connected-p)
              (sldb-buffers))
     (let ((symbol-at-point (slime-symbol-at-point)))
       (when (and symbol-at-point
-                 (not (string= symbol-at-point slime-goto-frame-local--last-symbol)))
-        (setq slime-goto-frame-local--last-symbol symbol-at-point)
-        (slime-goto-frame-local symbol-at-point)))))
+                 (not (string= symbol-at-point sldb-show-frame-local--last-symbol)))
+        (setq sldb-show-frame-local--last-symbol symbol-at-point)
+        (sldb-show-frame-local symbol-at-point)))))
 
-(defun slime-goto-frame-local-on-cursor-move ()
-  "Setup slime-goto-frame-local when cursor moves."
+(defun sldb-show-frame-local-on-cursor-move ()
+  "Setup sldb-show-frame-local when cursor moves."
   (add-to-list 'slime-mode-hook
                (lambda ()
-                 (add-to-list 'post-command-hook #'slime-goto-frame-local--post-command))))
+                 (add-to-list 'post-command-hook #'sldb-show-frame-local--post-command))))
 
-(provide 'slime-goto-frame-local)
-;;; slime-goto-frame-local.el ends here
+(provide 'sldb-show-frame-local)
+;;; sldb-show-frame-local.el ends here
