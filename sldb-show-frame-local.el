@@ -30,7 +30,7 @@
 (defun slime-maybe-select-sldb-buffer ()
   "Select the SLDB buffer to work with."
   (let ((sldb-buffers (sldb-buffers)))
-    (case (length sldb-buffers)
+    (cl-case (length sldb-buffers)
       (0 nil)
       (1 (car sldb-buffers))
       (t (completing-read "SLDB buffer: " sldb-buffers)))))
@@ -64,7 +64,7 @@ Then show the frame details and highlight the line with the local."
               (sldb-frame-details)
             (let ((lines 2))
               (dolist (local locals)
-                (when (string= (cl-getf local :name) symbol)
+                (when (cl-equalp (cl-getf local :name) symbol)
                   ;; Local found
                   (setq local-found-p t)
                   (let ((inhibit-read-only t)
@@ -81,7 +81,7 @@ Then show the frame details and highlight the line with the local."
                     (sit-for 2)
                     ;; Exit the loop
                     (cl-return-from loop)))
-                (incf lines))))
+                (cl-incf lines))))
           ;; Try with next frame
           (sldb-forward-frame)))
       ;; Restore position in buffer unless local was found
