@@ -105,7 +105,9 @@
   "The last symbol visited.")
 
 (defun sldb-show-frame-local--post-command ()
-  (when (and (slime-connected-p)
+  "Function to run as post-command, that shows local-at-point in sldb error buffer."
+  (when (and slime-mode
+             (slime-connected-p)
              (sldb-buffers))
     (let ((symbol-at-point (slime-symbol-at-point)))
       (when (and symbol-at-point
