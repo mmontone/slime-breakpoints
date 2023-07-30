@@ -42,12 +42,18 @@
       (slime-qualify-cl-symbol-name symbol-at-point))))
 
 (defun sldb-show-frame-local (symbol)
-  "Go to backtrace local for SYMBOL."
+  "Show backtrace local for SYMBOL.
+
+Look for the local in sldb error buffer backtrace frames.
+Then show the frame details and highlight the line with the local."
   (interactive (list (slime-read-symbol-name "Navigate to backtrace local: ")))
   (let ((current-buffer (current-buffer))
-        (sldb-buffer (slime-maybe-select-sldb-buffer)))
+        (sldb-buffer (slime-maybe-select-sldb-buffer))
+        (original-pos nil)
+        (local-found-p nil))
     (when sldb-buffer
       (switch-to-buffer-other-window sldb-buffer)
+      (setq original-pos (point))
       (hl-line-mode)
       (sldb-hide-all-frame-details)
       (sldb-beginning-of-backtrace)
@@ -60,6 +66,7 @@
               (dolist (local locals)
                 (when (string= (cl-getf local :name) symbol)
                   ;; Local found
+                  (setq local-found-p t)
                   (let ((inhibit-read-only t)
                         (inhibit-point-motion-hooks t))
                     ;; Show the frame details and goto the line of the local
@@ -77,6 +84,9 @@
                 (incf lines))))
           ;; Try with next frame
           (sldb-forward-frame)))
+      ;; Restore position in buffer unless local was found
+      (unless local-found-p
+        (goto-char original-pos))
       (switch-to-buffer-other-window current-buffer))))
 
 (defun sldb-hide-all-frame-details ()
