@@ -254,7 +254,7 @@ The breakpoint remains in the list of breakpoints."
      (buffer-substring-no-properties start end)
      start end)))
 
-(defun slime-region-for-last-expression ()
+(defun slime--region-for-last-expression ()
   "Return the region for last expression."
   (let (start
         (end (point)))
@@ -263,13 +263,13 @@ The breakpoint remains in the list of breakpoints."
       (setq start (point)))
     (list start end)))
 
-(defun slime-expression-next-expression ()
+(defun slime--expression-next-expression ()
   "Return the next Lisp expression at point."
   (buffer-substring-no-properties
    (point)
    (save-excursion (forward-sexp) (point))))
 
-(defun slime-region-for-next-expression ()
+(defun slime--region-for-next-expression ()
   "Return the region for next expression."
   (let ((start (point))
         end)
@@ -278,7 +278,7 @@ The breakpoint remains in the list of breakpoints."
       (setq end (point)))
     (list start end)))
 
-(defun slime-next-expression-with-positions ()
+(defun slime--next-expression-with-positions ()
   "Return the next expression and start and end positions, in a list."
   (let ((start (point))
         end)
@@ -304,6 +304,21 @@ and is expected to return a wrapped version."
              (wrapped-defun-source (concat start-region wrapped-expression end-region)))
         wrapped-defun-source))))
 
+(defun slime--wrap-next-expression (wrapper)
+  "Wrap the expression at point.
+WRAPPER is a function that takes the expression at point string,
+and is expected to return a wrapped version."
+  (cl-destructuring-bind (next-expression exp-start exp-end)
+      (slime--next-expression-with-positions)
+    (cl-destructuring-bind (defun-start defun-end)
+        (slime-region-for-defun-at-point)
+      ;; Remove the expression from the function source
+      (let* ((start-region (buffer-substring-no-properties defun-start exp-start))
+             (end-region (buffer-substring-no-properties exp-end defun-end))
+             (wrapped-expression (funcall wrapper next-expression))
+             (wrapped-defun-source (concat start-region wrapped-expression end-region)))
+        wrapped-defun-source))))
+
 (defun slime--async-compile-string (string start-offset &optional cont)
   (let* ((line (save-excursion
                  (goto-char start-offset)
@@ -318,21 +333,6 @@ and is expected to return a wrapped version."
           ',slime-compilation-policy)
       (or cont #'slime-compilation-finished))))
 
-(defun slime-wrap-next-expression (wrapper)
-  "Wrap the expression at point.
-WRAPPER is a function that takes the expression at point string,
-and is expected to return a wrapped version."
-  (cl-destructuring-bind (next-expression exp-start exp-end)
-      (slime-next-expression-with-positions)
-    (cl-destructuring-bind (defun-start defun-end)
-        (slime-region-for-defun-at-point)
-      ;; Remove the expression from the function source
-      (let* ((start-region (buffer-substring-no-properties defun-start exp-start))
-             (end-region (buffer-substring-no-properties exp-end defun-end))
-             (wrapped-expression (funcall wrapper next-expression))
-             (wrapped-defun-source (concat start-region wrapped-expression end-region)))
-        wrapped-defun-source))))
-
 (defun slime-break-with-last-expression (datum)
   "Compile function at point with a BREAK at last expression position.
 DATUM is the string passed as first argument to CL:BREAK function.
@@ -340,15 +340,18 @@ The CL:BREAK function is invoked with last expression value as second argument.
 The function at point is compiled with the extra debugging code.
 Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
   (interactive (list (read-string "Datum: " "~s")))
-  (let ((source-with-break
-         (slime--wrap-last-expression
-          (lambda (exp)
-            (let* ((inner-break-exp (format "(cl:break \"%s\" %s)" datum exp))
-                   (break-exp (format "(cl:prog1 %s %s)" exp inner-break-exp)))
-              (display-message-or-buffer (format "Break installed with: %s" inner-break-exp))
-              (view-echo-area-messages)
-              break-exp)))))
-    (slime-compile-string source-with-break 0)))
+  (let* (expr
+         (source-with-break
+          (slime--wrap-last-expression
+           (lambda (exp)
+             (let* ((inner-break-exp (format "(cl:break \"%s\" %s)" datum exp))
+                    (break-exp (format "(cl:prog1 %s %s)" exp inner-break-exp)))
+               (setq expr inner-break-exp)
+               break-exp)))))
+    (slime--async-compile-string
+     source-with-break 0
+     (lambda (_result)
+       (display-message-or-buffer (format "Break installed with: %s" expr))))))
 
 (defun slime-insert-break-at-point ()
   "Compile function at point with a BREAK at cursor position.
@@ -393,7 +396,7 @@ The function at point is compiled with the extra debugging code.
 Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
   (interactive)
   (let ((source-with-step
-         (slime-wrap-next-expression
+         (slime--wrap-next-expression
           (lambda (exp)
             (format "(cl:step %s)" exp)))))
     (slime-compile-string source-with-step 0)))
@@ -406,7 +409,7 @@ Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
   (let ((source-with-print
-         (slime-wrap-next-expression
+         (slime--wrap-next-expression
           (lambda (exp)
             (display-message-or-buffer (format "Instrumented for debug printing: %s" exp))
             (view-echo-area-messages)
