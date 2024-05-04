@@ -304,6 +304,20 @@ and is expected to return a wrapped version."
              (wrapped-defun-source (concat start-region wrapped-expression end-region)))
         wrapped-defun-source))))
 
+(defun slime--async-compile-string (string start-offset &optional cont)
+  (let* ((line (save-excursion
+                 (goto-char start-offset)
+                 (list (line-number-at-pos) (1+ (current-column)))))
+         (position `((:position ,start-offset) (:line ,@line))))
+    (slime-eval-async
+        `(swank:compile-string-for-emacs
+          ,string
+          ,(buffer-name)
+          ',position
+          ,(if (buffer-file-name) (slime-to-lisp-filename (buffer-file-name)))
+          ',slime-compilation-policy)
+      (or cont #'slime-compilation-finished))))
+
 (defun slime-wrap-next-expression (wrapper)
   "Wrap the expression at point.
 WRAPPER is a function that takes the expression at point string,
@@ -392,6 +406,8 @@ Requires cl-debug-print."
   (let ((source-with-print
          (slime-wrap-next-expression
           (lambda (exp)
+            (display-message-or-buffer (format "Debug printing: %s" exp))
+            (view-echo-area-messages)
             (format "(debug-print:debug-print '%s %s)" exp exp)))))
     (slime-compile-string source-with-print 0)))
 
@@ -403,6 +419,8 @@ Requires cl-debug-print."
   (let ((source-with-print
          (slime-wrap-last-expression
           (lambda (exp)
+            (display-message-or-buffer (format "Debug printing: %s" exp))
+            (view-echo-area-messages)
             (format "(debug-print:debug-print '%s %s)" exp exp)))))
     (slime-compile-string source-with-print 0)))
 
