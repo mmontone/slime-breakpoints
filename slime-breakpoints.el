@@ -243,7 +243,7 @@ The breakpoint remains in the list of breakpoints."
 
 ;; -- Additional useful debugging commands
 
-(defun slime-last-expression-with-positions ()
+(defun slime--last-expression-with-positions ()
   "Return the last expression and start and end positions, in a list."
   (let (start
         (end (point)))
@@ -294,7 +294,7 @@ The breakpoint remains in the list of breakpoints."
 WRAPPER is a function that takes the expression at point string,
 and is expected to return a wrapped version."
   (cl-destructuring-bind (last-expression exp-start exp-end)
-      (slime-last-expression-with-positions)
+      (slime--last-expression-with-positions)
     (cl-destructuring-bind (defun-start defun-end)
         (slime-region-for-defun-at-point)
       ;; Remove the expression from the function source
