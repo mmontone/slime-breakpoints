@@ -25,22 +25,31 @@ In Emacs, add this repository path to `load-path` and `slime-breakpoints` to `sl
 
 ## Use
 
-```
-slime-break-on-entry	      C-c b RET
-   Install breakpoint on FUNCTION-NAME.
-slime-list-breakpoints	      C-c b l
-   Open a buffer that list the current installed breakpoints.
-slime-remove-all-breakpoints  C-c b q
-   Remove all breakpoints.
-slime-remove-breakpoint	      C-c b <deletechar>
-   Remove breakpoint on FUNCTION-NAME.
-slime-toggle-breakpoint	      C-c b SPC
-   Toggle breakpoint on FUNCTION-NAME.
-slime-break-with-last-expression
-   Compile function at point with a BREAK at last expression position.
-slime-trace-last-expression
-   Compile function at point with a 'trace' expression at last expression position.
-```
+### Breakpoints
+
+- **slime-break-on-entry** *C-c b RET* - Install breakpoint on FUNCTION-NAME.
+- **slime-list-breakpoints** *C-c b l* - Open a buffer that list the current installed breakpoints.
+- **slime-remove-all-breakpoints**  *C-c b q* - Remove all breakpoints.
+- **slime-remove-breakpoint** *C-c b <deletechar>* - Remove breakpoint on FUNCTION-NAME.
+- **slime-toggle-breakpoint** *C-c b SPC* - Toggle breakpoint on FUNCTION-NAME.
+- **slime-break-with-last-expression** - Compile function at point with a BREAK at last expression position.
+
+### Tracing
+- **slime-trace-last-expression** - Compile function at point with a 'trace' expression at last expression position.
+
+### Stepping
+
+- **slime-step-in-last-expression** - Compile function at point with a 'step' expression at last expression position.
+- **slime-step-in-next-expression** - Compile function at point with a 'step' expression at next expression position.
+
+### Debug printing
+
+These commands require [cl-debug-print](https://github.com/masatoi/cl-debug-print) installed (it is available via Quicklisp).
+
+- **slime-debug-print-next-expression** - Instrument next expression to be debug printed when evaluated.
+- **slime-debug-print-last-expression** - Instrument last expression to be debug printed when evaluated.
+
+## Common Lisp api
 
 You can also use from Common Lisp directly. The `breakpoints` package exports this functions:
 
