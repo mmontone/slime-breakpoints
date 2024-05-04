@@ -384,6 +384,28 @@ Use `slime-compile-defun' on the function source code to recompile without the d
             (format "(cl:step %s)" exp)))))
     (slime-compile-string source-with-step 0)))
 
+(defun slime-debug-print-next-expression ()
+  "Print next expression for debugging.
+Requires cl-debug-print."
+  (interactive)
+  (slime-eval '(cl:require :cl-debug-print))
+  (let ((source-with-print
+         (slime-wrap-next-expression
+          (lambda (exp)
+            (format "(debug-print:debug-print '%s %s)" exp exp)))))
+    (slime-compile-string source-with-print 0)))
+
+(defun slime-debug-print-last-expression ()
+  "Print last expression for debugging.
+Requires cl-debug-print."
+  (interactive)
+  (slime-eval '(cl:require :cl-debug-print))
+  (let ((source-with-print
+         (slime-wrap-last-expression
+          (lambda (exp)
+            (format "(debug-print:debug-print '%s %s)" exp exp)))))
+    (slime-compile-string source-with-print 0)))
+
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") #'slime-break-on-entry)
