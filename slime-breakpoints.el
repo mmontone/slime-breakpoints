@@ -399,27 +399,27 @@ Use `slime-compile-defun' on the function source code to recompile without the d
     (slime-compile-string source-with-step 0)))
 
 (defun slime-debug-print-next-expression ()
-  "Print next expression for debugging.
+  "Instrument next expression to be debug printed when evaluated.
 Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
   (let ((source-with-print
          (slime-wrap-next-expression
           (lambda (exp)
-            (display-message-or-buffer (format "Debug printing: %s" exp))
+            (display-message-or-buffer (format "Instrumented for debug printing: %s" exp))
             (view-echo-area-messages)
             (format "(debug-print:debug-print '%s %s)" exp exp)))))
     (slime-compile-string source-with-print 0)))
 
 (defun slime-debug-print-last-expression ()
-  "Print last expression for debugging.
+  "Instrument last expression to be debug printed when evaluated.
 Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
   (let ((source-with-print
          (slime-wrap-last-expression
           (lambda (exp)
-            (display-message-or-buffer (format "Debug printing: %s" exp))
+            (display-message-or-buffer (format "Instrumented for debug printing: %s" exp))
             (view-echo-area-messages)
             (format "(debug-print:debug-print '%s %s)" exp exp)))))
     (slime-compile-string source-with-print 0)))
