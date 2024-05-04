@@ -408,13 +408,16 @@ Use `slime-compile-defun' on the function source code to recompile without the d
 Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
-  (let ((source-with-print
-         (slime--wrap-next-expression
-          (lambda (exp)
-            (display-message-or-buffer (format "Instrumented for debug printing: %s" exp))
-            (view-echo-area-messages)
-            (format "(debug-print:debug-print '%s %s)" exp exp)))))
-    (slime-compile-string source-with-print 0)))
+  (let* (expr
+         (source-with-print
+          (slime--wrap-next-expression
+           (lambda (exp)
+             (setq expr exp)
+             (format "(debug-print:debug-print '%s %s)" exp exp)))))
+    (slime--async-compile-string
+     source-with-print 0
+     (lambda (_result)
+       (display-message-or-buffer (format "Instrumented for debug printing: %s" expr))))))
 
 (defun slime-debug-print-last-expression ()
   "Instrument last expression to be debug printed when evaluated.
@@ -423,13 +426,16 @@ Use `slime-compile-defun' on the function source code to recompile without the d
 Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
-  (let ((source-with-print
-         (slime--wrap-last-expression
-          (lambda (exp)
-            (display-message-or-buffer (format "Instrumented for debug printing: %s" exp))
-            (view-echo-area-messages)
-            (format "(debug-print:debug-print '%s %s)" exp exp)))))
-    (slime-compile-string source-with-print 0)))
+  (let* (expr
+         (source-with-print
+          (slime--wrap-last-expression
+           (lambda (exp)
+             (setq expr exp)
+             (format "(debug-print:debug-print '%s %s)" exp exp)))))
+    (slime--async-compile-string
+     source-with-print 0
+     (lambda (_result)
+       (display-message-or-buffer (format "Instrumented for debug printing: %s" expr))))))
 
 (defvar slime-breakpoints-command-map
   (let ((map (make-sparse-keymap)))
