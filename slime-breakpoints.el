@@ -400,6 +400,8 @@ Use `slime-compile-defun' on the function source code to recompile without the d
 
 (defun slime-debug-print-next-expression ()
   "Instrument next expression to be debug printed when evaluated.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff.
 Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
@@ -413,6 +415,8 @@ Requires cl-debug-print."
 
 (defun slime-debug-print-last-expression ()
   "Instrument last expression to be debug printed when evaluated.
+The function at point is compiled with the extra debugging code.
+Use `slime-compile-defun' on the function source code to recompile without the debugging stuff.
 Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
@@ -452,12 +456,6 @@ Requires cl-debug-print."
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Insert break at point" slime-insert-break-at-point])
   (easy-menu-add-item 'menubar-slime '("Debugging")
-                      ["Trace last expression" slime-trace-last-expression])
-  (easy-menu-add-item 'menubar-slime '("Debugging")
-                      ["Step on entry..." slime-step-on-entry])
-  (easy-menu-add-item 'menubar-slime '("Debugging")
-                      ["Step in last expression..." slime-step-in-last-expression])
-  (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Toggle breakpoint at point" slime-toggle-breakpoint])
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Remove breakpoint at point" slime-remove-breakpoint])
@@ -468,7 +466,19 @@ Requires cl-debug-print."
   (easy-menu-add-item 'menubar-slime '("Debugging")
                       ["Remove all breakpoints" slime-remove-all-breakpoints])
   (easy-menu-add-item 'menubar-slime '("Debugging")
-                      ["List breakpoints" slime-list-breakpoints]))
+                      ["List breakpoints" slime-list-breakpoints])
+  (easy-menu-add-item 'menubar-slime '("Debugging") "---")
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Trace last expression" slime-trace-last-expression])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Step on entry..." slime-step-on-entry])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Step in last expression..." slime-step-in-last-expression])
+  (easy-menu-add-item 'menubar-slime '("Debugging") "---")
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Debug print last expression" slime-debug-print-last-expression])
+  (easy-menu-add-item 'menubar-slime '("Debugging")
+                      ["Debug print next expression" slime-debug-print-next-expression]))
 
 (define-slime-contrib slime-breakpoints
   "Breakpoints management extension for SLIME."
