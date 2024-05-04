@@ -289,7 +289,7 @@ The breakpoint remains in the list of breakpoints."
      (buffer-substring-no-properties start end)
      start end)))
 
-(defun slime-wrap-last-expression (wrapper)
+(defun slime--wrap-last-expression (wrapper)
   "Wrap the expression at point.
 WRAPPER is a function that takes the expression at point string,
 and is expected to return a wrapped version."
@@ -341,7 +341,7 @@ The function at point is compiled with the extra debugging code.
 Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
   (interactive (list (read-string "Datum: " "~s")))
   (let ((source-with-break
-         (slime-wrap-last-expression
+         (slime--wrap-last-expression
           (lambda (exp)
             (let* ((inner-break-exp (format "(cl:break \"%s\" %s)" datum exp))
                    (break-exp (format "(cl:prog1 %s %s)" exp inner-break-exp)))
@@ -371,7 +371,7 @@ The function at point is compiled with the extra debugging code.
 Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
   (interactive (list (read-string "Datum: " "~s~%")))
   (let ((source-with-trace
-         (slime-wrap-last-expression
+         (slime--wrap-last-expression
           (lambda (exp)
             (format "(cl:prog1 %s (cl:format cl:t \"%s\" %s))" exp datum exp)))))
     (slime-compile-string source-with-trace 0)))
@@ -382,7 +382,7 @@ The function at point is compiled with the extra debugging code.
 Use `slime-compile-defun' on the function source code to recompile without the debugging stuff."
   (interactive)
   (let ((source-with-step
-         (slime-wrap-last-expression
+         (slime--wrap-last-expression
           (lambda (exp)
             (format "(cl:step %s)" exp)))))
     (slime-compile-string source-with-step 0)))
@@ -421,7 +421,7 @@ Requires cl-debug-print."
   (interactive)
   (slime-eval '(cl:require :cl-debug-print))
   (let ((source-with-print
-         (slime-wrap-last-expression
+         (slime--wrap-last-expression
           (lambda (exp)
             (display-message-or-buffer (format "Instrumented for debug printing: %s" exp))
             (view-echo-area-messages)
