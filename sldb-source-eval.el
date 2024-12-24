@@ -84,6 +84,8 @@
 (defun sldb-source-eval-eval-last-expression ()
   "Prompt for an expression and evaluate it in the selected frame."
   (interactive)
+  (unless (numberp slime-current-thread)
+    (user-error "Run this command after selecting a frame from a backtrace, using `sldb-show-source' (bound to ?v by default)."))
   (let ((package (slime-current-package))
         (expr (slime-last-expression))
         (frame sldb-source-eval-frame-number))
@@ -149,4 +151,5 @@
   (:license "GPL"))
 
 (provide 'sldb-source-eval)
+
 ;;; sldb-source-eval.el ends here
