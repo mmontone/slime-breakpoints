@@ -120,6 +120,9 @@ SLIME debugger (SLDB) extension that adds debugger context based evaluation dire
 ![sldb-source-eval](sldb-source-eval.png)
 ![sldb-source-eval](sldb-source-eval.gif)
 
+When SLIME debugger (SLDB) opens, move cursor to a backtrace frame, and press letter `v' for navigating to the frame source.
+Use C-x C-e to evaluate expressions in the source buffer using the backtrace frame as context.
+
 # SLDB-SHOW-FRAME-LOCAL
 
 This is a prototype.
